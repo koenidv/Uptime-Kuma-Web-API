@@ -1,48 +1,26 @@
 # authentication.py
 from fastapi import Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from uptime_kuma_api import UptimeKumaApi, UptimeKumaException
-from typing import Optional
-import jwt
-from pydantic import ValidationError
 
-from utils.security import verify_password
-from schemas.jwt import JWTData
-from models.user import UserCreate, UserResponse
 from config import settings, logger as logging
-from utils import security
 
-oauth2_token = OAuth2PasswordBearer(tokenUrl="/login/access-token/")
+http_bearer = HTTPBearer()
 
 
-async def get_current_user(token: str = Depends(oauth2_token)):
-    try:
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
-        )
-        token_data = JWTData(**payload)
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(http_bearer),
+):
+    if not settings.API_KEY:
+        raise HTTPException(status_code=500, detail="API_KEY is not configured")
 
-    except (jwt.exceptions.InvalidSignatureError, ValidationError) as e:
-        logging.info(e)
-        raise HTTPException(status_code=403, detail="invalid credentials")
+    if credentials.credentials != settings.API_KEY:
+        raise HTTPException(status_code=403, detail="Invalid API key")
 
-    except jwt.exceptions.ExpiredSignatureError as e:
-        logging.info(e)
-        raise HTTPException(status_code=403, detail="Token expired !!")
     try:
         api = UptimeKumaApi(settings.KUMA_SERVER)
-        api.login_by_token(token_data.sub)
-        user = {"token": token_data.sub, "api": api}
-        return user
+        api.login(settings.KUMA_USERNAME, settings.KUMA_PASSWORD)
+        return {"token": credentials.credentials, "api": api}
     except UptimeKumaException as e:
         logging.fatal(e)
         raise HTTPException(400, {"error": str(e)})
-
-
-def authenticate(user: UserCreate, password: str) -> Optional[UserResponse]:
-    if not user:
-        return None
-
-    if not verify_password(password, user.password_hash):
-        return None
-    return user

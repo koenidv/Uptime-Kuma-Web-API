@@ -1,10 +1,6 @@
 #!/bin/bash
 
-TOKEN=$(curl -s -X 'POST' \
-  'http://localhost:8000/login/access-token' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/x-www-form-urlencoded' \
-  -d 'grant_type=&username=admin&password=admin&scope=&client_id=&client_secret=' | jq -r ".access_token")
+TOKEN="${API_KEY}"
 echo -e "\nToken: ${TOKEN}"
 
 echo -e "\nGet all status pages:"
