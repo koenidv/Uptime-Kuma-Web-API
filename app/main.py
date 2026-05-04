@@ -5,14 +5,12 @@ from fastapi.responses import RedirectResponse
 from routers import (
     statuspage,
     monitor,
-    auth,
     tags,
     cert,
     info,
     uptime,
     ping,
     database,
-    user,
     settings,
     maintenance,
 )
@@ -22,7 +20,6 @@ from app_setup import initialize_app
 app = FastAPI(title=app_settings.PROJECT_NAME)
 app.router.redirect_slashes = True
 
-app.include_router(user.router, prefix="/users", tags=["Users"])
 app.include_router(settings.router, prefix="/settings", tags=["Settings"])
 app.include_router(database.router, prefix="/database", tags=["DataBase"])
 app.include_router(monitor.router, prefix="/monitors", tags=["Monitor"])
@@ -33,7 +30,6 @@ app.include_router(cert.router, prefix="/cert_info", tags=["Certification Info"]
 app.include_router(info.router, prefix="/info", tags=["Informations"])
 app.include_router(ping.router, prefix="/ping", tags=["Ping Average"])
 app.include_router(uptime.router, prefix="/uptime", tags=["Uptime"])
-app.include_router(auth.router, prefix="/login", tags=["Authentication"])
 
 
 @app.on_event("startup")

@@ -21,22 +21,13 @@ You have to define these ENV VARS in order to connect to your KUMA server.
     KUMA_SERVER: The URL of your Uptime Kuma instance. ex: https://uptime.example.com
     KUMA_USERNAME: The username of your Uptime Kuma user
     KUMA_PASSWORD: The password of your Uptime Kuma user
-    ADMIN_PASSWORD: An admin password to access the API
-
-#### Optional
-Additional configuration variables available
-
-    ACCESS_TOKEN_EXPIRATION: Minutes the access token should be valid. Defaults to 8 days.
-    SECRET_KEY: A secret value to encode JWTs with
+    API_KEY: A secret key used to authenticate requests to this API
 
 #### Note:
 
-You have to define your ADMIN_PASSWORD or you wont be able to connect to your rest api.
+You must set `API_KEY` to a secure random string. All requests to the API must include the header:
 
-You will connect with those credentials:
-
-    username = admin
-    password = <ADMIN_PASSWORD>
+    Authorization: Bearer <API_KEY>
 
 ### Features:
 
@@ -72,7 +63,7 @@ services:
       - KUMA_SERVER=http://kuma:3001
       - KUMA_USERNAME=test
       - KUMA_PASSWORD=123test.
-      - ADMIN_PASSWORD=admin
+      - API_KEY=your-secret-api-key
     depends_on:
       - kuma
     ports:
@@ -91,8 +82,6 @@ volumes:
 
 ```bash
 
-    TOKEN=$(curl -X -L 'POST' -H 'Content-Type: application/x-www-form-urlencoded' --data 'username=admin&password=admin' http://127.0.0.1:8000/login/access-token/ | jq -r ".access_token")
-
-    curl -L -H 'Accept: application/json' -H "Authorization: Bearer ${TOKEN}" http://127.0.0.1:8000/monitors/
+    curl -L -H 'Accept: application/json' -H "Authorization: Bearer ${API_KEY}" http://127.0.0.1:8000/monitors/
 
 ```
